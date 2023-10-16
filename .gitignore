@@ -1,1 +1,10 @@
-fastq
+*.html
+*.gz
+*.fq
+*.fastq
+*.sam
+*.bam
+*.bed
+*.zip
+*.fqfiles
+*.fasta
