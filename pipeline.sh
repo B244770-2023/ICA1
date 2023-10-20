@@ -21,14 +21,14 @@ hisat2-build tcongo_genome.fasta reference_index
 #executing hisat2 alignment with loop
 for file in ${HOME}/BPSM/ICA1/fastq
 do
-	base_name=${basename "$file" .fq}
+	base_name=$(basename "$file" .fq)
 	hisat2 -x reference_index -U ${file} -S ${HOME}/BPSM/ICA1/hisat2/${base_name}.sam
 done
 
 #converting to bam files
 for file in ${HOME}/BPSM/ICA1/hisat2
 do
-	base_name=${basename "$file" .sam}
+	base_name=$(basename "$file" .sam)
 	samtools view -bS ${file} > ${HOME}/BPSM/ICA1/hisat2/${base_name}.bam
 done
 
