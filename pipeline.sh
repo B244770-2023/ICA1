@@ -5,13 +5,32 @@ fqs="/localdisk/data/BPSM/ICA1/fastq"
 genome="/localdisk/data/BPSM/ICA1/Tcongo_genome/TriTrypDB-46_TcongolenseIL3000_2019_Genome.fasta.gz"
 genes="/localdisk/data/BPSM/ICA1/TriTrypDB-46_TcongolenseIL3000_2019.bed"
 
-#doing the fastq jobs
+cd ${HOME}/BPSM/ICA1
+#copy and process the sample details(drop the suffix of End1 and End2)
+cp $fqs/Tco2.fqfiles ${HOME}/BPSM/ICA1/
+awk 'BEGIN {OFS="\t"} {gsub(/\.gz/, "", $6); gsub(/\.gz/, "", $7); print}' Tco2.fqfiles > Tco2.details
+
+#divide fq files into groups(naming method: time-treatment-sampletype)
+mkdir fastq
 gzip -dc $fqs/*.gz >> ${HOME}/BPSM/ICA1/fastq/
 cd ${HOME}/BPSM/ICA1/fastq
-fastq *.fq
+while IFS=$'\t' read -r SampleName SampleType Replicate Time Treatment End1 End2
+do
+    if [ "$SampleName" == "SampleName" ]; then
+        continue
+    fi
+    foldername="${Time}_${Treatment}_${SampleType}"
+    if [ ! -d "$foldername" ]; then
+        mkdir "$foldername"
+    fi
+    mv "$End1" "$foldername/"
+    mv "$End2" "$foldername/"
+done < ${HOME}/BPSM/ICA1/Tco2.details
 
-#copy the sample details
-cp $fqs/Tco2.fqfiles ${HOME}/BPSM/ICA1/
+
+#doing the fastq jobs
+cd ${HOME}/BPSM/ICA1/fastq
+fastq *.fq
 
 #check the quality of each gene
 for file in ${HOME}/BPSM/ICA1/htmls/*.html
@@ -31,72 +50,84 @@ gzip -dc $genome >> ${HOME}/BPSM/ICA1/hisat2/tcongo_genome.fasta
 ##constructing index for hisat2
 cd ${HOME}/BPSM/ICA1/hisat2
 hisat2-build tcongo_genome.fasta reference_index
+
+
+#!!those actions have to done by hand in the different directory for a few times!!#
 ##executing hisat2 alignment with loop
-for file in ${HOME}/BPSM/ICA1/fastq/*.fq
+wdir="${HOME}/BPSM/ICA1/fastq/0_Uninduced_Clone1" #change directroy here for group-wise
+for file in ${HOME}/BPSM/ICA1/fastq/*.fq 
 do
 	base_name=$(basename "$file" .fq)
 	hisat2 -x reference_index -U ${file} -S ${HOME}/BPSM/ICA1/hisat2/${base_name}.sam
 done
 
 #converting sam files to bam files
-for file in ${HOME}/BPSM/ICA1/hisat2/*.sam
+for file in $wdir/*.sam
 do
 	base_name=$(basename "$file" .sam)
 	samtools view -b ${file} > ${HOME}/BPSM/ICA1/hisat2/${base_name}.bam
 done
 
 #sorting the bam files
-for file in ${HOME}/BPSM/ICA1/hisat2/*.bam
+for file in wdir/*.bam
 do
 	base_name=$(basename "$file" .bam)
 	samtools sort ${file} -o sorted_${base_name}.bam
 done
 
 #counting the number of reads that aligned to the coding region of the genome
-cd ${HOME}/BPSM/ICA1
+cd $wdir
 mkdir counting
-cd ${HOME}/BPSM/ICA1/counting
+cd $wdir/counting
 cp $genes ./genes.bed
 
 #generate counting results for each gene
-for file in ${HOME}/BPSM/ICA1/hisat2/sorted_*.bam
+for file in $wdir/sorted_*.bam
 do
 	base_name=$(basename "$file" .bam)
 	bedtools coverage -a genes.bed -b ${file} -counts > ${base_name}.coveredoutput
 done
 
 #sum up to get counts for the whole genome
-for file in ${HOME}/BPSM/ICA1/counting/*.coveredoutput
+for file in $wdir/*.coveredoutput
 do
     base_name=$(basename "$file" .coveredoutput)
     realname="${base_name#sorted_}"
+    #output a file which calculates number of reads that align to the regions of coding genes in genome
     awk '{counts += $NF} END {print counts}' "$file" | sed "s/^/${realname} /" >> counting.txt
 done
 
-#calculate mean counts for each gene
-#cut off verbose info first
-for file in ${HOME}/BPSM/ICA1/counting/*.coveredoutput
+#cut off verbose info, left only gene names, descriptions and counts
+for file in ${PWD}/BPSM/ICA1/counting/*.coveredoutput
 do
     base_name=$(basename "$file" .coveredoutput)
     realname="${base_name#sorted_}"
 	awk -F'\t' '{print $4, $5, $6}' $file > $realname.count
 done
 
-#sum up counts by gene to get expression level
+#calculate average expression level of genes by groups
 awk '
 {
     sum[$2] += $NF;
-    line[$2] = $0
+    count[$2]++;
+    line[$2] = $0;
 }
 END {
     for (id in sum) {
-        sub(/[0-9]+$/, sum[id], line[id]);
-        print line[id]
+        avg = sum[id] / count[id];
+        sub(/[0-9]+$/, avg, line[id]);
+        print line[id];
     }
 }
-' *.count > gene_expression_level.txt
+' *.count > gene_average_expression_level.txt
 
-#
+#calculate fold changes(over time relative to uninduced controls)
+#e.g. choosing induced clone1 at 24h and uninduced clone1 at 24h
 
-
-
+awk 'NR==FNR{a[NR]=$NF; next} {print $0, $NF/a[FNR]}' $wir/24_Induced_Clone1/gene_average_expression_level.txt $wir/24_Uninduced_Clone1/gene_average_expression_level.txt > $wir/24_Induced_Clone1/fold_change.txt
+awk 'NR==FNR{a[NR]=$NF; next} {print $0, $NF/a[FNR]}' $wir/48_Induced_Clone1/gene_average_expression_level.txt $wir/48_Uninduced_Clone1/gene_average_expression_level.txt > $wir/48_Induced_Clone1/fold_change.txt
+awk 'NR==FNR{a[NR]=$NF; next} {print $0, $NF/a[FNR]}' $wir/24_Induced_Clone2/gene_average_expression_level.txt $wir/24_Uninduced_Clone2/gene_average_expression_level.txt > $wir/24_Induced_Clone2/fold_change.txt
+awk 'NR==FNR{a[NR]=$NF; next} {print $0, $NF/a[FNR]}' $wir/48_Induced_Clone2/gene_average_expression_level.txt $wir/48_Uninduced_Clone2/gene_average_expression_level.txt > $wir/48_Induced_Clone2/fold_change.txt
+awk 'NR==FNR{a[NR]=$NF; next} {print $0, $NF/a[FNR]}' $wir/24_Induced_WT/gene_average_expression_level.txt $wir/24_Uninduced_WT/gene_average_expression_level.txt > $wir/24_Induced_WT/fold_change.txt
+awk 'NR==FNR{a[NR]=$NF; next} {print $0, $NF/a[FNR]}' $wir/48_Induced_WT/gene_average_expression_level.txt $wir/48_Uninduced_WT/gene_average_expression_level.txt > $wir/48_Induced_WT/fold_change.txt
+#...

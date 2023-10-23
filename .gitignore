@@ -10,3 +10,6 @@
 *.fasta
 hisat2/*
 counting/*
+fastq/*
+test/*
+*.details
