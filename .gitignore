@@ -8,3 +8,5 @@
 *.zip
 *.fqfiles
 *.fasta
+hisat2/*
+counting/*
