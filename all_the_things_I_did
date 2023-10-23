@@ -1,0 +1,71 @@
+commit bb686628c56db1a1d17a59d90b1bd50727e9e94e
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 23 12:18:34 2023 +0100
+
+    completed all
+
+commit c9fbd373f83b6361f9b362166d819f6b199559e7
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 23 07:02:53 2023 +0100
+
+    added sequence assess module and part of the reads alignment counting module
+
+commit 24f34da8242d5f939839c4edaed7bbfb7c2cc51f
+Author: B244770-2023 <email_not_provided>
+Date:   Fri Oct 20 22:38:18 2023 +0100
+
+    small changes
+
+commit ad35f63b3adbc721cac01b6470a2185cf40f7db6
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 16 11:08:42 2023 +0100
+
+    bugs
+
+commit 064dca4084024b5406584ce528a2ed481bb9af58
+Merge: 148b1f6 da01e73
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 16 10:52:16 2023 +0100
+
+    Merge pull request #2 from B244770-2023/master
+    
+    fixed 'for loop' bugs for data cleaning
+
+commit da01e73a2eae362072fc01c96878d6f6df79af41
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 16 10:48:56 2023 +0100
+
+    fixed 'for loop' bugs for data cleaning
+
+commit 148b1f686ff60db785befe5a360f912c9d111f0d
+Merge: 8d37f49 4daf9a9
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 16 10:43:45 2023 +0100
+
+    Merge pull request #1 from B244770-2023/master
+    
+    Master
+
+commit 4daf9a99c8d9a06727365c080894a014881ca4fb
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 16 02:49:59 2023 +0100
+
+    a new script for data cleaning and new .gitignore for all raw data files
+
+commit 0eb752f150b102ba95be4d4b899cbdcf8062fa42
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 16 01:47:07 2023 +0100
+
+    config to ignore the raw data
+
+commit df599dc90edf94846e63b69bb5e2692555243c34
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 16 01:29:42 2023 +0100
+
+    initialise a repo
+
+commit 8d37f49edb98d26e899eff0a664ca8ed3f6a02e2
+Author: B244770-2023 <email_not_provided>
+Date:   Mon Oct 16 01:25:40 2023 +0100
+
+    Initial commit
